@@ -12,56 +12,93 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
-
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory;
-    use HasProfilePhoto;
-    use Notifiable;
-    use TwoFactorAuthenticatable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'is_admin',
+        'is_banned',
+        'reputation'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
-        'two_factor_recovery_codes',
-        'two_factor_secret',
     ];
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array<int, string>
-     */
-    protected $appends = [
-        'profile_photo_url',
-    ];
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+
+    public function ownedColocations()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(Colocation::class, 'owner_id');
+    }
+
+
+    public function colocations()
+    {
+        return $this->belongsToMany(Colocation::class)
+                    ->withPivot('role')
+                    ->withTimestamps();
+    }
+
+
+    public function depenses()
+    {
+        return $this->hasMany(Depense::class);
+    }
+
+
+    public function paiements()
+    {
+        return $this->hasMany(Paiement::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPERS (Méthodes utiles)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Récupère la colocation ACTIVE de cet utilisateur
+     * (il ne peut avoir qu'une seule à la fois)
+     */
+    public function getActiveColocation()
+    {
+        return $this->colocations()
+            ->where('status_colocation', 'active')
+            ->first();
+    }
+
+    /**
+     * Vérifie si l'utilisateur a une colocation active
+     */
+    public function hasActiveColocation()
+    {
+        return $this->getActiveColocation() !== null;
+    }
+
+    /**
+     * Vérifie si l'utilisateur est propriétaire d'une colocation
+     */
+    public function ownsColocation(Colocation $colocation)
+    {
+        return $this->id === $colocation->owner_id;
+    }
+
+    /**
+     * Récupère le rôle de l'utilisateur dans une colocation
+     * Retourne 'owner' ou 'member'
+     */
+    public function getRoleInColocation(Colocation $colocation)
+    {
+        return $this->colocations()
+            ->where('colocation_id', $colocation->id)
+            ->first()?->pivot->role;
     }
 }
