@@ -6,30 +6,24 @@ use App\Models\Categorie;
 use App\Models\Colocation;
 use App\Http\Requests\StoreCategoryRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CategoryController extends Controller
 {
-    /**
-     * Affiche le formulaire de création d'une catégorie
-     */
+    
     public function create(Colocation $colocation)
     {
-        // Vérifier que l'utilisateur a le droit de faire ça
-        // (pour le moment : doit être le owner ou admin)
-        if ($colocation->owner_id !== auth()->id() && !auth()->user()->is_admin) {
+
+        if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
             abort(403);
         }
 
         return view('categories.create', compact('colocation'));
     }
-
-    /**
-     * Créer une catégorie
-     */
+ 
     public function store(StoreCategoryRequest $request, Colocation $colocation)
     {
-        // Vérification d'autorisation
-        if ($colocation->owner_id !== auth()->id() && !auth()->user()->is_admin) {
+         if ($colocation->owner_id !== auth()->id() && !auth()->user()->is_admin) {
             abort(403);
         }
 
@@ -45,15 +39,13 @@ class CategoryController extends Controller
             ->with('success', 'Catégorie créée !');
     }
 
-    /**
-     * Supprimer une catégorie
-     */
+ 
     public function destroy(Categorie $categorie)
     {
         $colocation = $categorie->colocation;
 
-        // Vérification d'autorisation
-        if ($colocation->owner_id !== auth()->id() && !auth()->user()->is_admin) {
+
+        if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
             abort(403);
         }
 
