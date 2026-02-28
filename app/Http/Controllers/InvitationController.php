@@ -32,6 +32,10 @@ class InvitationController extends Controller
             'email' => 'required|email'
         ]);
 
+        if ($colocation->users()->where('email', $request->email)->exists()) {
+            return back()->with('error', 'Cet utilisateur est déjà membre de la colocation.');
+        }
+
         $invitation = Invitation::create([
             'email' => $request->email,
             'token' => Str::random(40),
@@ -49,41 +53,55 @@ class InvitationController extends Controller
             ->where('statut', 'en_attente')
             ->firstOrFail();
 
+        session(['invitation_token' => $token]);
+
         if (!Auth::check()) {
-            session(['invitation_token' => $token]);
-            return redirect()->route('register');
+            if (\App\Models\User::where('email', $invitation->email)->exists()) {
+                return redirect()->route('login');
+            } else {  
+                return redirect()->route('register');
+            }
         }
 
-        return view('emails.response', compact('invitation'));
+         if ($invitation->colocation->users()->where('user_id', Auth::id())->exists()) {
+            return redirect()->route('colocations.show', $invitation->colocation_id)
+                ->with('info', 'Vous êtes déjà membre de cette colocation.');
+        }
+
+         return view('emails.response', compact('invitation'));
     }
 
  
     public function accept($token)
     {
-        $invitation = Invitation::where('token', $token)
+         $invitation = Invitation::where('token', $token)
             ->where('statut', 'en_attente')
             ->firstOrFail();
 
-        if ($invitation->email !== Auth::user()->email) {
+         if ($invitation->email !== Auth::user()->email) {
             abort(403, 'Cette invitation ne vous appartient pas.');
         }
 
-        if (!$invitation->colocation->users()->where('user_id', Auth::id())->exists()) {
-            $invitation->colocation->users()->attach(Auth::id(), [
-                'role' => 'member'
-            ]);
+         if ($invitation->colocation->users()->where('user_id', Auth::id())->exists()) {
+            return redirect()
+                ->route('colocations.show', $invitation->colocation_id)
+                ->with('info', 'Vous êtes déjà membre de cette colocation.');
         }
 
-        $invitation->update([
+         $invitation->colocation->users()->attach(Auth::id(), [
+            'role' => 'member'
+        ]);
+
+         $invitation->update([
             'statut' => 'acceptee'
         ]);
 
-        session()->forget('invitation_token');
+         session()->forget('invitation_token');
 
-        return redirect()
+         return redirect()
             ->route('colocations.show', $invitation->colocation_id)
             ->with('success', 'Invitation acceptée avec succès !');
-    } 
+    }
  
     public function refuse($token)
     {
