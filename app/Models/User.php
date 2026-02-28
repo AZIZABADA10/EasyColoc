@@ -26,11 +26,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | RELATIONS
-    |--------------------------------------------------------------------------
-    */
+
 
 
     public function ownedColocations()
@@ -58,43 +54,24 @@ class User extends Authenticatable
         return $this->hasMany(Paiement::class);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HELPERS (Méthodes utiles)
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Récupère la colocation ACTIVE de cet utilisateur
-     * (il ne peut avoir qu'une seule à la fois)
-     */
+ 
     public function getActiveColocation()
     {
         return $this->colocations()
             ->where('status_colocation', 'active')
             ->first();
     }
-
-    /**
-     * Vérifie si l'utilisateur a une colocation active
-     */
+ 
     public function hasActiveColocation()
     {
         return $this->getActiveColocation() !== null;
     }
-
-    /**
-     * Vérifie si l'utilisateur est propriétaire d'une colocation
-     */
+ 
     public function ownsColocation(Colocation $colocation)
     {
         return $this->id === $colocation->owner_id;
     }
-
-    /**
-     * Récupère le rôle de l'utilisateur dans une colocation
-     * Retourne 'owner' ou 'member'
-     */
+ 
     public function getRoleInColocation(Colocation $colocation)
     {
         return $this->colocations()
