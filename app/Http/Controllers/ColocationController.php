@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Colocation;
 use App\Http\Requests\StoreColocationRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,4 +64,28 @@ class ColocationController extends Controller
             ->route('colocations.index')
             ->with('success', 'Colocation supprimée.');
     }
+
+    public function leave(Colocation $colocation)
+    {
+        if (auth()->id() == $colocation->owner_id) {
+            return back()->with('error', 'Le propriétaire ne peut pas quitter.');
+        }
+
+        $colocation->users()->detach(auth()->id());
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Vous avez quitté la colocation.');
+    }
+
+    public function removeMember(Colocation $colocation, User $user)
+    {
+        if (auth()->id() != $colocation->owner_id) {
+            abort(403);
+        }
+
+        $colocation->users()->detach($user->id);
+
+        return back()->with('success', 'Membre retiré.');
+    }
+
 }
