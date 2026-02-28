@@ -39,4 +39,9 @@ class Depense extends Model
     {
         return number_format($this->montant, 2, ',', ' ') . ' €';
     }
+
+    public function getMontantFormatted()
+    {
+        return number_format($this->montant, 2, ',', ' ') . ' €';
+    }
 }
