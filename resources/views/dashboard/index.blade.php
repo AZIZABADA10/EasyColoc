@@ -52,7 +52,7 @@
                 <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100">
                     <h2 class="text-lg font-bold text-slate-900">Dépenses récentes</h2>
                     @if($activeColocation)
-                        <a href="{{ route('expenses.index', $activeColocation) }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-semibold transition-colors">
+                        <a href="{{ route('colocations.show', $activeColocation) }}" class="text-indigo-600 hover:text-indigo-700 text-sm font-semibold transition-colors">
                             Voir tout
                         </a>
                     @endif
