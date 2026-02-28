@@ -63,7 +63,7 @@ Route::middleware([
     Route::post('/invitation/{token}/accept', [InvitationController::class, 'accept'])
         ->name('invitations.confirm');
 
-    Route::delete('/colocations/{colocation}/leave', [ColocationController::class, 'leave'])
+    Route::delete('/colocations/{colocation}/l eave', [ColocationController::class, 'leave'])
         ->name('colocations.leave');
 
     Route::delete('/colocations/{colocation}/remove/{user}', [ColocationController::class, 'removeMember'])
