@@ -14,8 +14,7 @@ class Depense extends Model
         'categorie_id'
     ];
 
-
-
+ 
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -35,17 +34,8 @@ class Depense extends Model
     {
         return $this->hasMany(Paiement::class);
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | HELPERS
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Affiche le montant formaté (ex: "25.50 €")
-     */
-    public function getMontantFormatted()
+ 
+    public function getMontantFormattedAttribute()
     {
         return number_format($this->montant, 2, ',', ' ') . ' €';
     }
