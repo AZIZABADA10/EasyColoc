@@ -13,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Contracts\RegisterResponse;
+use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -30,15 +31,14 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
  
-
-        $this->app->singleton(RegisterResponse::class, function () {
-            return new class implements RegisterResponse {
+        $this->app->singleton(LoginResponse::class, function () {
+            return new class implements \Laravel\Fortify\Contracts\LoginResponse {
                 public function toResponse($request)
                 {
                     if (session()->has('invitation_token')) {
                         return redirect()->route(
                             'invitations.accept',
-                            session('invitation_token')
+                            ['token' => session('invitation_token')]
                         );
                     }
 
@@ -46,7 +46,22 @@ class FortifyServiceProvider extends ServiceProvider
                 }
             };
         });
- 
+
+        $this->app->singleton(RegisterResponse::class, function () {
+            return new class implements \Laravel\Fortify\Contracts\RegisterResponse {
+                public function toResponse($request)
+                {
+                    if (session()->has('invitation_token')) {
+                        return redirect()->route(
+                            'invitations.accept',
+                            ['token' => session('invitation_token')]
+                        );
+                    }
+
+                    return redirect()->route('dashboard');
+                }
+            };
+        });
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(
