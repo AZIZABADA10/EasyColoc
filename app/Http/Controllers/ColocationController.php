@@ -46,9 +46,10 @@ class ColocationController extends Controller
  
     public function show(Colocation $colocation)
     {
-         $colocation->load('users', 'categories', 'depenses.user');
+        $colocation->load('users', 'categories', 'depenses.user', 'depenses.categorie', 'depenses.paiements.user');
+        $debts = $colocation->getDebts();
 
-        return view('colocations.show', compact('colocation'));
+        return view('colocations.show', compact('colocation', 'debts'));
     }
 
  
@@ -86,6 +87,17 @@ class ColocationController extends Controller
         $colocation->users()->detach($user->id);
 
         return back()->with('success', 'Membre retiré.');
+    }
+
+    public function balance(Colocation $colocation)
+    {
+        if (!$colocation->users->contains(auth()->id())) {
+            abort(403);
+        }
+
+        $balances = $colocation->calculateBalances();
+
+        return view('colocations.balance', compact('colocation', 'balances'));
     }
 
 }
