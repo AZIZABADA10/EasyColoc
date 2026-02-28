@@ -33,14 +33,20 @@ Route::middleware([
     Route::delete('categories/{categorie}', [CategoryController::class, 'destroy'])
         ->name('categories.destroy');
 
-    // Route::get('colocations/{colocation}/expenses', [ExpenseController::class, 'index'])
-    //     ->name('expenses.index');
-    // Route::get('colocations/{colocation}/expenses/create', [ExpenseController::class, 'create'])
-    //     ->name('expenses.create');
-    // Route::post('colocations/{colocation}/expenses', [ExpenseController::class, 'store'])
-    //     ->name('expenses.store');
-    // Route::delete('expenses/{depense}', [ExpenseController::class, 'destroy'])
-    //     ->name('expenses.destroy');
+    Route::get('/colocations/{colocation}/expenses/create',[ExpenseController::class, 'create']
+    )->name('expenses.create');
+
+    Route::post('/colocations/{colocation}/expenses',[ExpenseController::class, 'store']
+    )->name('expenses.store');
+
+    Route::delete('/expenses/{expense}',[ExpenseController::class, 'destroy']
+    )->name('expenses.destroy');
+
+    Route::put('/payments/{paiement}/mark-as-paid',[ExpenseController::class, 'markAsPaid']
+    )->name('payments.mark-as-paid');
+
+    Route::put('/colocations/{colocation}/debts/{fromId}/{toId}/mark-paid', [ExpenseController::class, 'markDebtAsPaid'])
+        ->name('debts.mark-as-paid');
 
     Route::get('colocations/{colocation}/invite', [InvitationController::class, 'create'])
         ->name('invitations.create');
@@ -62,7 +68,8 @@ Route::middleware([
 
     Route::delete('/colocations/{colocation}/remove/{user}', [ColocationController::class, 'removeMember'])
         ->name('colocations.removeMember');
- 
+    Route::get('/colocations/{colocation}/balance',[ColocationController::class, 'balance'])
+        ->name('colocations.balance');
 
     Route::middleware('admin')->group(function () {
         Route::get('/admin', function () {
