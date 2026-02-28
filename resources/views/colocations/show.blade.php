@@ -4,266 +4,244 @@
 @section('title', $colocation->nom_colocation . ' - EasyColoc')
 
 @section('content')
-
-
-@if(session('info'))
-    <div class="bg-blue-100 text-blue-800 p-3 mb-4 rounded shadow">
-        {{ session('info') }}
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="bg-red-100 text-red-800 p-3 mb-4 rounded shadow">
-        {{ session('error') }}
-    </div>
-@endif
-
-<!-- Header Card -->
-<div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8">
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
-        <div class="flex justify-between items-start">
-            <div>
-                <h1 class="text-4xl font-bold">{{ $colocation->nom_colocation }}</h1>
-                @if($colocation->discription)
-                    <p class="text-blue-100 mt-3 text-lg">{{ $colocation->discription }}</p>
-                @endif
-                <p class="text-blue-200 text-sm mt-4">Créée le {{ $colocation->created_at->format('d M Y') }}</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Message Flash Success -->
+    @if(session('success'))
+        <div class="mb-6 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
             </div>
-            <div class="text-right">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full 
-                    @if($colocation->isActive()) bg-emerald-500/20 text-emerald-100 @else bg-slate-500/20 text-slate-100 @endif
-                ">
-                    <div class="w-2 h-2 rounded-full @if($colocation->isActive()) bg-emerald-400 @else bg-slate-400 @endif"></div>
-                    <span class="font-semibold">@if($colocation->isActive()) Actif @else Inactif @endif</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Grid de 3 sections -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-
-    <!-- ================= MEMBRES ================= -->
-    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
-        
-        <div class="bg-gradient-to-r from-blue-100 to-indigo-100 p-6 border-b border-slate-200">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-slate-900">Colocataires</h3>
-                <span class="px-3 py-1 rounded-full bg-blue-600 text-white text-sm font-bold">
-                    {{ $colocation->getMembersCount() }}
-                </span>
-            </div>
-        </div>
-
-        <div class="flex-1 p-6 space-y-3">
-
-            @foreach($colocation->users as $user)
-
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-
-                    <!-- Infos utilisateur -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">
-                                {{ strtoupper(substr($user->name, 0, 1)) }}
-                            </span>
-                        </div>
-
-                        <div>
-                            <p class="font-semibold text-slate-900 text-sm">
-                                {{ $user->name }}
-                            </p>
-
-                            <p class="text-xs text-slate-500">
-                                {{ $user->email }}
-                            </p>
-
-                            <p class="text-xs mt-1">
-                                @if($user->id === $colocation->owner_id)
-                                    <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">
-                                        Owner
-                                    </span>
-                                @else
-                                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
-                                        Member
-                                    </span>
-                                @endif
-
-                                <span class="ml-2 text-slate-500">
-                                     Réputation : {{ $user->reputation_score ?? 0 }}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="flex items-center gap-2">
-
-                        <!-- Owner peut retirer -->
-                        @if(auth()->id() === $colocation->owner_id && $user->id !== $colocation->owner_id)
-                            <form method="POST"
-                                  action="{{ route('colocations.removeMember', [$colocation, $user]) }}"
-                                  onsubmit="return confirm('Retirer ce membre ?')">
-                                @csrf
-                                @method('DELETE')
-
-                                <button type="submit"
-                                    class="text-red-600 hover:text-red-800 transition-colors text-sm font-semibold">
-                                    Retirer
-                                </button>
-                            </form>
-                        @endif
-
-                        <!-- Member peut quitter -->
-                        @if(auth()->id() === $user->id && $user->id !== $colocation->owner_id)
-                            <form method="POST"
-                                  action="{{ route('colocations.leave', $colocation) }}"
-                                  onsubmit="return confirm('Quitter la colocation ?')">
-                                @csrf
-                                @method('DELETE')
-
-                                <button type="submit"
-                                    class="text-slate-600 hover:text-slate-900 transition-colors text-sm font-semibold">
-                                    Quitter
-                                </button>
-                            </form>
-                        @endif
-
-                    </div>
-
-                </div>
-
-            @endforeach
-
-        </div>
-
-        <!-- Bouton Inviter -->
-        @if($colocation->owner_id === auth()->id())
-            <div class="p-6 border-t border-slate-200">
-                <a href="{{ route('invitations.create', $colocation) }}"
-                   class="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl
-                          bg-gradient-to-r from-purple-600 to-pink-600
-                          text-white font-semibold text-sm
-                          hover:shadow-lg transform hover:-translate-y-0.5
-                          transition-all duration-200">
-                    Inviter
-                </a>
-            </div>
-        @endif
-
-    </div>
-
-    <!-- ================= CATÉGORIES ================= -->
-    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
-
-        <div class="bg-gradient-to-r from-emerald-100 to-teal-100 p-6 border-b border-slate-200">
-            <div class="flex items-center justify-between">
-                <h3 class="text-lg font-bold text-slate-900">Catégories</h3>
-                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-sm font-bold">
-                    {{ $colocation->categories()->count() }}
-                </span>
-            </div>
-        </div>
-
-        <div class="flex-1 p-6 space-y-2 overflow-y-auto max-h-64">
-            @forelse($colocation->categories as $category)
-                <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                    <p class="font-semibold text-slate-900 text-sm">
-                        {{ $category->titre_categorie }}
-                    </p>
-                </div>
-            @empty
-                <p class="text-slate-500 text-sm italic text-center py-8">
-                    Aucune catégorie
-                </p>
-            @endforelse
-        </div>
-    </div>
-
-    <!-- ================= STATS ================= -->
-    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
-
-        <div class="bg-gradient-to-r from-orange-100 to-red-100 p-6 border-b border-slate-200">
-            <h3 class="text-lg font-bold text-slate-900">Dépenses</h3>
-        </div>
-
-        <div class="flex-1 p-6 space-y-4">
-
-            <div class="bg-orange-50 p-4 rounded-xl border border-orange-200">
-                <p class="text-orange-600 text-xs font-semibold uppercase mb-2">
-                    Ce Mois-ci
-                </p>
-                <p class="text-3xl font-bold text-orange-600">
-                    {{ number_format($colocation->getMonthlyExpensesTotal(), 2) }} DH
-                </p>
-            </div>
-
-            <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                <p class="text-purple-600 text-xs font-semibold uppercase mb-2">
-                    Par Personne
-                </p>
-                <p class="text-3xl font-bold text-purple-600">
-                    {{ number_format($colocation->getMonthlyExpensesTotal() / max($colocation->getMembersCount(), 1), 2) }} DH
-                </p>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-
-    @if($colocation->depenses->count() > 0)
-        <div class="space-y-3">
-            @foreach($colocation->depenses()->latest()->limit(5)->get() as $expense)
-                <div class="flex justify-between items-center p-4 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-900">{{ $expense->titre_depense }}</p>
-                                <p class="text-xs text-slate-600">
-                                    <span class="font-semibold">{{ $expense->user->name }}</span> • 
-                                    <span class="text-slate-500">{{ $expense->categorie->titre_categorie }}</span>
-                                </p>
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-500">{{ $expense->created_at->format('d M Y \\à H:i') }}</p>
-                    </div>
-
-                    <div class="flex items-center gap-4">
-                        <p class="text-lg font-bold text-orange-600 whitespace-nowrap">{{ $expense->getMontantFormatted() }}</p>
-                        @if($expense->user_id === auth()->id() || $colocation->owner_id === auth()->id())
-                            <form method="POST" action="{{ route('expenses.destroy', $expense) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette dépense ?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                    </svg>
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @else
-        <div class="py-12 text-center">
-            <svg class="w-12 h-12 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <p class="text-slate-600 text-lg font-medium">Aucune dépense enregistrée</p>
+            <p class="text-emerald-800 font-medium">{{ session('success') }}</p>
         </div>
     @endif
+
+    <!-- Message Flash Error -->
+    @if(session('error'))
+        <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2" />
+                </svg>
+            </div>
+            <p class="text-red-800 font-medium">{{ session('error') }}</p>
+        </div>
+    @endif
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-4xl font-bold text-slate-900">{{ $colocation->nom_colocation }}</h1>
+                <p class="text-slate-600 mt-2">{{ $colocation->discription }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Status Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full 
+                    @if($colocation->isActive()) 
+                        bg-emerald-100 text-emerald-800 
+                    @else 
+                        bg-slate-100 text-slate-800 
+                    @endif
+                ">
+                    <div class="w-2 h-2 rounded-full @if($colocation->isActive()) bg-emerald-600 @else bg-slate-400 @endif"></div>
+                    <span class="font-semibold text-sm">@if($colocation->isActive()) Actif @else Inactif @endif</span>
+                </div>
+
+                <!-- Bouton Retour -->
+                <a href="{{ route('colocations.index') }}" 
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-900 font-semibold transition-colors">
+                    ← Retour
+                </a>
+
+                <!-- Bouton Annuler (Owner Only) -->
+                @if(auth()->id() === $colocation->owner_id)
+                    <form method="POST" action="{{ route('colocations.destroy', $colocation) }}" style="display:inline;" 
+                          onsubmit="return confirm('Êtes-vous sûr ? Cette action est définitive.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold transition-colors">
+                            🗑️ Annuler la colocation
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid Layout 70/30 -->
+    <div class="grid grid-cols-1 lg:grid-cols-7 gap-6">
+        
+        <!-- Left Column (70%) - Dépenses -->
+        <div class="lg:col-span-5">
+            
+            <!-- Header Dépenses Récentes -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-slate-900">Dépenses récentes</h2>
+                    <a href="{{ route('expenses.create', $colocation) }}"
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+                        + Nouvelle dépense
+                    </a>
+                </div>
+
+                <!-- Filter (optional) -->
+                <div class="mb-4">
+                    <button class="text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium">
+                        ▼ Filtrer par mois: Tous les mois
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dépenses List -->
+            <div class="space-y-3">
+                @forelse($colocation->depenses()->latest()->get() as $expense)
+                    <div class="bg-white rounded-xl p-4 border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all">
+                        <div class="flex justify-between items-start gap-4">
+                            <!-- Expense Info -->
+                            <div class="flex-grow">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <!-- Avatar Circle -->
+                                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                                        <span class="text-white font-bold text-sm">
+                                            {{ strtoupper(substr($expense->user->name, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div>
+                                        <p class="font-semibold text-slate-900">{{ $expense->titre_depense }}</p>
+                                        <p class="text-sm text-slate-600">
+                                            <span class="font-semibold">{{ $expense->user->name }}</span>
+                                            @if($expense->categorie)
+                                                • <span class="text-slate-500">{{ $expense->categorie->titre_categorie }}</span>
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Amount and Action -->
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                <p class="text-lg font-bold text-slate-900 whitespace-nowrap">
+                                    {{ number_format($expense->montant, 2, ',', ' ') }} €
+                                </p>
+                                @if($expense->user_id === auth()->id() || $colocation->owner_id === auth()->id())
+                                    <form method="POST" action="{{ route('expenses.destroy', $expense) }}" style="display:inline;" 
+                                          onsubmit="return confirm('Supprimer cette dépense ?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900 transition-colors">
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="bg-white rounded-xl p-12 border border-slate-200 text-center">
+                        <p class="text-slate-500 font-medium">Aucune dépense enregistrée</p>
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- Right Column (30%) -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Bloc "Qui doit à qui ?" -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="bg-slate-100 px-6 py-4 border-b border-slate-200">
+                    <h3 class="font-bold text-slate-900">Qui doit à qui ?</h3>
+                </div>
+
+                <div class="p-6 space-y-3">
+                    @if($debts && count($debts) > 0)
+                        @foreach($debts as $debt)
+                            <div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                                <p class="text-sm text-slate-700 mb-2">
+                                    <span class="font-semibold">{{ $debt['from']->name }}</span> 
+                                    <span class="text-slate-500">→</span> 
+                                    <span class="font-semibold">{{ $debt['to']->name }}</span>
+                                </p>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-lg font-bold text-emerald-600">
+                                        +{{ number_format($debt['montant'], 2, ',', ' ') }} €
+                                    </p>
+                                    @if(auth()->id() === $debt['from_id'])
+                                        <form method="POST" 
+                                              action="{{ route('debts.mark-as-paid', [$colocation, $debt['from_id'], $debt['to_id']]) }}"
+                                              style="display:inline;">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" 
+                                                    class="text-xs px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors">
+                                                Marquer payé
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center py-8">
+                            <p class="text-slate-500 font-medium">✓ Aucune dette</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Bloc "Membres de la coloc" -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="bg-slate-100 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-900">Membres de la coloc</h3>
+                    <span class="text-xs font-bold bg-slate-200 text-slate-900 px-2 py-1 rounded">{{ $colocation->getMembersCount() }}</span>
+                </div>
+
+                <div class="p-6 space-y-3 max-h-96 overflow-y-auto">
+                    @foreach($colocation->users as $user)
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <!-- Avatar -->
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center flex-shrink-0">
+                                    <span class="text-white font-bold text-sm">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </span>
+                                </div>
+                                
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <p class="font-semibold text-slate-900 text-sm truncate">{{ $user->name }}</p>
+                                        @if($user->id === $colocation->owner_id)
+                                            <span class="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded whitespace-nowrap">
+                                                👑 OWNER
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-slate-600">⭐ Rep: {{ $user->reputation_score ?? 0 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Bouton Inviter Un Membre -->
+                @if($colocation->owner_id === auth()->id())
+                    <div class="border-t border-slate-200 p-6">
+                        <a href="{{ route('invitations.create', $colocation) }}"
+                           class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors">
+                            👥 Inviter un membre
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
 </div>
 
 @endsection
- 
