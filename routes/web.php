@@ -8,8 +8,12 @@ use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvitationController;
 
 Route::get('/', function () {
-    return view('auth.login');
+    return view('auth.register');
 });
+
+Route::get('/invitation/{token}', [InvitationController::class, 'handle'])
+    ->name('invitations.accept');
+
 
 Route::middleware([
     'auth:sanctum',
@@ -44,14 +48,21 @@ Route::middleware([
     Route::post('colocations/{colocation}/invite', [InvitationController::class, 'store'])
         ->name('invitations.store');
 
-    Route::get('/invitation/{token}', [InvitationController::class, 'handle'])
-        ->name('invitations.accept');
 
-    Route::post('/invitation/{token}/accept', [InvitationController::class, 'accept'])
-        ->name('invitations.confirm');
 
     Route::post('/invitation/{token}/refuse', [InvitationController::class, 'refuse'])
         ->name('invitations.refuse');
+
+ 
+    Route::post('/invitation/{token}/accept', [InvitationController::class, 'accept'])
+        ->name('invitations.confirm');
+
+    Route::delete('/colocations/{colocation}/leave', [ColocationController::class, 'leave'])
+        ->name('colocations.leave');
+
+    Route::delete('/colocations/{colocation}/remove/{user}', [ColocationController::class, 'removeMember'])
+        ->name('colocations.removeMember');
+ 
 
     Route::middleware('admin')->group(function () {
         Route::get('/admin', function () {
