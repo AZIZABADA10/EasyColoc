@@ -5,6 +5,19 @@
 
 @section('content')
 
+
+@if(session('info'))
+    <div class="bg-blue-100 text-blue-800 p-3 mb-4 rounded shadow">
+        {{ session('info') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div class="bg-red-100 text-red-800 p-3 mb-4 rounded shadow">
+        {{ session('error') }}
+    </div>
+@endif
+
 <!-- Header Card -->
 <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8">
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
@@ -30,122 +43,175 @@
 
 <!-- Grid de 3 sections -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <!-- Membres Section -->
+
+    <!-- ================= MEMBRES ================= -->
     <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
+        
         <div class="bg-gradient-to-r from-blue-100 to-indigo-100 p-6 border-b border-slate-200">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-bold text-slate-900">Colocataires</h3>
-                <span class="px-3 py-1 rounded-full bg-blue-600 text-white text-sm font-bold">{{ $colocation->getMembersCount() }}</span>
+                <span class="px-3 py-1 rounded-full bg-blue-600 text-white text-sm font-bold">
+                    {{ $colocation->getMembersCount() }}
+                </span>
             </div>
         </div>
 
         <div class="flex-1 p-6 space-y-3">
+
             @foreach($colocation->users as $user)
+
                 <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+
+                    <!-- Infos utilisateur -->
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">{{ substr($user->name, 0, 1) }}</span>
+                            <span class="text-white font-bold text-sm">
+                                {{ strtoupper(substr($user->name, 0, 1)) }}
+                            </span>
                         </div>
+
                         <div>
-                            <p class="font-semibold text-slate-900 text-sm">{{ $user->name }}</p>
-                            <p class="text-xs text-slate-500">{{ $user->email }}</p>
+                            <p class="font-semibold text-slate-900 text-sm">
+                                {{ $user->name }}
+                            </p>
+
+                            <p class="text-xs text-slate-500">
+                                {{ $user->email }}
+                            </p>
+
+                            <p class="text-xs mt-1">
+                                @if($user->id === $colocation->owner_id)
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold">
+                                        Owner
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                                        Member
+                                    </span>
+                                @endif
+
+                                <span class="ml-2 text-slate-500">
+                                     Réputation : {{ $user->reputation_score ?? 0 }}
+                                </span>
+                            </p>
                         </div>
                     </div>
-                    @if($user->id === $colocation->owner_id)
-                        <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Owner</span>
-                    @else
-                        <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Member</span>
-                    @endif
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-2">
+
+                        <!-- Owner peut retirer -->
+                        @if(auth()->id() === $colocation->owner_id && $user->id !== $colocation->owner_id)
+                            <form method="POST"
+                                  action="{{ route('colocations.removeMember', [$colocation, $user]) }}"
+                                  onsubmit="return confirm('Retirer ce membre ?')">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit"
+                                    class="text-red-600 hover:text-red-800 transition-colors text-sm font-semibold">
+                                    Retirer
+                                </button>
+                            </form>
+                        @endif
+
+                        <!-- Member peut quitter -->
+                        @if(auth()->id() === $user->id && $user->id !== $colocation->owner_id)
+                            <form method="POST"
+                                  action="{{ route('colocations.leave', $colocation) }}"
+                                  onsubmit="return confirm('Quitter la colocation ?')">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit"
+                                    class="text-slate-600 hover:text-slate-900 transition-colors text-sm font-semibold">
+                                    Quitter
+                                </button>
+                            </form>
+                        @endif
+
+                    </div>
+
                 </div>
+
             @endforeach
+
         </div>
 
+        <!-- Bouton Inviter -->
         @if($colocation->owner_id === auth()->id())
             <div class="p-6 border-t border-slate-200">
-                <a href="{{ route('invitations.create', $colocation) }}" class="
-                    w-full inline-flex items-center justify-center px-4 py-2 rounded-xl
-                    bg-gradient-to-r from-purple-600 to-pink-600
-                    text-white font-semibold text-sm
-                    hover:shadow-lg transform hover:-translate-y-0.5
-                    transition-all duration-200
-                ">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                    </svg>
+                <a href="{{ route('invitations.create', $colocation) }}"
+                   class="w-full inline-flex items-center justify-center px-4 py-2 rounded-xl
+                          bg-gradient-to-r from-purple-600 to-pink-600
+                          text-white font-semibold text-sm
+                          hover:shadow-lg transform hover:-translate-y-0.5
+                          transition-all duration-200">
                     Inviter
                 </a>
             </div>
         @endif
+
     </div>
 
-    <!-- Catégories Section -->
+    <!-- ================= CATÉGORIES ================= -->
     <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
+
         <div class="bg-gradient-to-r from-emerald-100 to-teal-100 p-6 border-b border-slate-200">
             <div class="flex items-center justify-between">
                 <h3 class="text-lg font-bold text-slate-900">Catégories</h3>
-                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-sm font-bold">{{ $colocation->categories()->count() }}</span>
+                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-sm font-bold">
+                    {{ $colocation->categories()->count() }}
+                </span>
             </div>
         </div>
 
         <div class="flex-1 p-6 space-y-2 overflow-y-auto max-h-64">
             @forelse($colocation->categories as $category)
                 <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
-                    <p class="font-semibold text-slate-900 text-sm">{{ $category->titre_categorie }}</p>
-                    @if($colocation->owner_id === auth()->id())
-                        <form method="POST" action="{{ route('categories.destroy', $category) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette catégorie ?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:text-red-900 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </form>
-                    @endif
+                    <p class="font-semibold text-slate-900 text-sm">
+                        {{ $category->titre_categorie }}
+                    </p>
                 </div>
             @empty
-                <p class="text-slate-500 text-sm italic text-center py-8">Aucune catégorie</p>
+                <p class="text-slate-500 text-sm italic text-center py-8">
+                    Aucune catégorie
+                </p>
             @endforelse
         </div>
-
-        @if($colocation->owner_id === auth()->id())
-            <div class="p-6 border-t border-slate-200">
-                <a href="{{ route('categories.create', $colocation) }}" class="
-                    w-full inline-flex items-center justify-center px-4 py-2 rounded-xl
-                    bg-gradient-to-r from-emerald-600 to-teal-600
-                    text-white font-semibold text-sm
-                    hover:shadow-lg transform hover:-translate-y-0.5
-                    transition-all duration-200
-                ">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Ajouter
-                </a>
-            </div>
-        @endif
     </div>
 
-    <!-- Stats Section -->
+    <!-- ================= STATS ================= -->
     <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
+
         <div class="bg-gradient-to-r from-orange-100 to-red-100 p-6 border-b border-slate-200">
             <h3 class="text-lg font-bold text-slate-900">Dépenses</h3>
         </div>
 
         <div class="flex-1 p-6 space-y-4">
+
             <div class="bg-orange-50 p-4 rounded-xl border border-orange-200">
-                <p class="text-orange-600 text-xs font-semibold uppercase tracking-wider mb-2">Ce Mois-ci</p>
-                <p class="text-3xl font-bold text-orange-600">{{ number_format($colocation->getMonthlyExpensesTotal(), 2) }} DH </p>
+                <p class="text-orange-600 text-xs font-semibold uppercase mb-2">
+                    Ce Mois-ci
+                </p>
+                <p class="text-3xl font-bold text-orange-600">
+                    {{ number_format($colocation->getMonthlyExpensesTotal(), 2) }} DH
+                </p>
             </div>
-            
+
             <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                <p class="text-purple-600 text-xs font-semibold uppercase tracking-wider mb-2">Par Personne</p>
-                <p class="text-3xl font-bold text-purple-600">{{ number_format($colocation->getMonthlyExpensesTotal() / max($colocation->getMembersCount(), 1), 2) }} DH </p>
+                <p class="text-purple-600 text-xs font-semibold uppercase mb-2">
+                    Par Personne
+                </p>
+                <p class="text-3xl font-bold text-purple-600">
+                    {{ number_format($colocation->getMonthlyExpensesTotal() / max($colocation->getMembersCount(), 1), 2) }} DH
+                </p>
             </div>
+
         </div>
 
-        <!--  -->
     </div>
+
 </div>
 
 
@@ -200,3 +266,4 @@
 </div>
 
 @endsection
+ 
