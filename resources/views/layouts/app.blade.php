@@ -21,8 +21,14 @@
                 
                 <div class="flex items-center space-x-6">
                     <div class="flex flex-col items-end">
-                        <span class="text-sm font-semibold text-slate-900">{{ auth()->user()->name }}</span>
-                        <span class="text-xs text-slate-500">Utilisateur</span>
+                        <a href="{{ route('profile.show') }}" class="flex flex-col items-end group">
+                            <span class="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition">
+                                {{ auth()->user()->name }}
+                            </span>
+                            <span class="text-xs text-slate-500 group-hover:text-blue-500 transition">
+                                Utilisateur
+                            </span>
+                        </a>
                     </div>
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
