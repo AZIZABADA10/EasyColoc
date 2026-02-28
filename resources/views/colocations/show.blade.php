@@ -253,17 +253,35 @@
                                 </div>
                             </div>
 
-                            <!-- Actions (Owner can kick/manage members) -->
-                            @if(auth()->id() === $colocation->owner_id && $user->id !== $colocation->owner_id)
+                            <!-- Actions -->
                                 <div class="flex items-center gap-1 flex-shrink-0">
-                                    <span class="text-xs text-slate-400">{{ $user->reputation_score ?? 0 }}</span>
-                                    <i class='bx bxs-crown text-slate-500 text-xs'></i>
-                                    <button class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-600 rounded-lg transition-colors"
-                                            title="Retirer le membre">
-                                        <i class='bx bx-user-minus text-sm'></i>
-                                    </button>
+                                    <!-- Owner : bouton kick sur les autres membres -->
+                                    @if(auth()->id() === $colocation->owner_id && $user->id !== $colocation->owner_id)
+                                        <form method="POST" action="{{ route('colocations.removeMember', [$colocation, $user]) }}"
+                                            onsubmit="return confirm('Retirer {{ $user->name }} de la colocation ?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-600 rounded-lg transition-colors"
+                                                    title="Retirer le membre">
+                                                <i class='bx bx-user-minus text-sm'></i>
+                                            </button>
+                                        </form>
+
+                                    <!-- Membre connecté (non-owner) : bouton quitter sur sa propre ligne -->
+                                    @elseif(auth()->id() === $user->id && $user->id !== $colocation->owner_id)
+                                        <form method="POST" action="{{ route('colocations.leave', $colocation) }}"
+                                            onsubmit="return confirm('Quitter cette colocation ?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-amber-400 hover:bg-slate-600 rounded-lg transition-colors"
+                                                    title="Quitter la colocation">
+                                                <i class='bx bx-log-out text-sm'></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
-                            @endif
                         </div>
                     @endforeach
                 </div>
