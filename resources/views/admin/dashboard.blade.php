@@ -66,9 +66,9 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dépenses Totales</p>
-                        <p class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($stats['total_spent'], 2, ',', ' ') }} €</p>
+                        <p class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($stats['total_spent'], 2, ',', ' ') }} DH</p>
                         <p class="text-xs text-slate-500 mt-2">
-                            {{ $stats['total_expenses'] }} transactions · Moy: {{ number_format($stats['avg_expense'], 2, ',', ' ') }} €
+                            {{ $stats['total_expenses'] }} transactions · Moy: {{ number_format($stats['avg_expense'], 2, ',', ' ') }} DH
                         </p>
                     </div>
                     <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
