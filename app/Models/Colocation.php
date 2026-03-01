@@ -15,10 +15,6 @@ class Colocation extends Model
         'owner_id'
     ];
 
-    /* =========================
-       RELATIONS
-    ==========================*/
-
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
@@ -46,10 +42,6 @@ class Colocation extends Model
         return $this->hasMany(Invitation::class);
     }
 
-    /* =========================
-       MÉTHODES UTILES
-    ==========================*/
-
     public function getMembersCount()
     {
         return $this->users()->count();
@@ -75,10 +67,6 @@ class Colocation extends Model
             ->with('user', 'categorie')
             ->get();
     }
-
-    /* =========================
-       CALCUL SOLDE
-    ==========================*/
 
     public function calculateBalances()
     {
@@ -113,10 +101,6 @@ class Colocation extends Model
         return $balances;
     }
 
-    /**
-     * Récupère toutes les dettes non payées de la colocation
-     * Groupées par (payeur -> créancier)
-     */
     public function getDebts()
     {
         $debts = collect();
@@ -126,7 +110,6 @@ class Colocation extends Model
             return $debts;
         }
 
-        // Récupère tous les paiements non payés
         $unpaidPayments = DB::table('paiements')
             ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
             ->where('depenses.colocation_id', $this->id)
@@ -146,9 +129,6 @@ class Colocation extends Model
 
         foreach ($unpaidPayments as $payment) {
             $montantDu = $payment->montant / $membersCount;
-            
-            // user_id = celui qui doit payer
-            // payeur_id = celui qui a payé
             $key = $payment->user_id . '_' . $payment->payeur_id;
 
             if ($montantParMembre->has($key)) {
@@ -164,7 +144,6 @@ class Colocation extends Model
             }
         }
 
-        // Transformer en collection avec les objets User
         foreach ($montantParMembre as $key => $debt) {
             $debts[] = [
                 'from' => User::find($debt['from_id']),
@@ -179,10 +158,6 @@ class Colocation extends Model
         return $debts;
     }
 
-    /**
-     * Vérifier s'il existe des dettes non réglées dans la colocation
-     * Utilisé pour empêcher l'annulation d'une colocation avec dettes
-     */
     public function hasUnpaidDebts()
     {
         return DB::table('paiements')
@@ -192,10 +167,6 @@ class Colocation extends Model
             ->exists();
     }
 
-    /**
-     * Récupérer tous les paiements non payés d'un utilisateur DANS CETTE colocation
-     * Utilisé pour vérifier si un member peut quitter
-     */
     public function getUnpaidDebtsForUser($userId)
     {
         return DB::table('paiements')
