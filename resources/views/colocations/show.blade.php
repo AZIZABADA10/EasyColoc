@@ -187,7 +187,7 @@
                         <!-- Montant -->
                         <div class="col-span-2 text-right">
                             <p class="font-bold text-slate-900 text-sm">
-                                {{ number_format($expense->montant, 2, ',', ' ') }} €
+                                {{ number_format($expense->montant, 2, ',', ' ') }} DH
                             </p>
                         </div>
 
@@ -235,7 +235,7 @@
                                 </p>
                                 <div class="flex justify-between items-center">
                                     <p class="text-base font-bold text-emerald-600">
-                                        +{{ number_format($debt['montant'], 2, ',', ' ') }} €
+                                        +{{ number_format($debt['montant'], 2, ',', ' ') }} DH
                                     </p>
                                     @if(auth()->id() === $debt['from_id'] || auth()->id() === $colocation->owner_id)
                                         <form method="POST"
