@@ -194,7 +194,7 @@
                                     <p class="text-base font-bold text-emerald-600">
                                         +{{ number_format($debt['montant'], 2, ',', ' ') }} €
                                     </p>
-                                    @if(auth()->id() === $debt['from_id'])
+                                    @if(auth()->id() === $debt['from_id'] || auth()->id() === $colocation->owner_id)
                                         <form method="POST"
                                               action="{{ route('debts.mark-as-paid', [$colocation, $debt['from_id'], $debt['to_id']]) }}"
                                               style="display:inline;">
