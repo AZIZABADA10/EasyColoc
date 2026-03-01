@@ -28,6 +28,49 @@
         </div>
     @endif -->  
 
+    <!-- Gestion des Catégories (Owner Only) -->
+    @if(auth()->id() === $colocation->owner_id)
+        <div class="mb-6 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div class="flex justify-between items-center">
+                <h3 class="font-semibold text-slate-900 text-sm">Catégories</h3>
+                <a href="{{ route('categories.create', $colocation) }}"
+                   class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-colors">
+                    <i class='bx bx-plus text-sm'></i>
+                    Ajouter
+                </a>
+            </div>
+
+            @if($colocation->categories->count() > 0)
+                <div class="mt-3 flex flex-wrap gap-2">
+                    @foreach($colocation->categories as $category)
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 rounded-lg border border-slate-200 group hover:bg-slate-200 transition">
+                            <span class="text-xs font-medium text-slate-700">{{ $category->titre_categorie }}</span>
+                            <div class="flex gap-1">
+                                <!-- Modifier -->
+                                <a href="{{ route('categories.edit', $category) }}" 
+                                   class="text-slate-400 hover:text-blue-600 transition"
+                                   title="Modifier">
+                                    <i class='bx bx-edit-alt text-xs'></i>
+                                </a>
+                                <!-- Supprimer -->
+                                <form method="POST" action="{{ route('categories.destroy', $category) }}" style="display:inline;"
+                                      onsubmit="return confirm('Supprimer cette catégorie ?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-slate-400 hover:text-red-600 transition">
+                                        <i class='bx bx-x text-sm'></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-xs text-slate-500 mt-3">Aucune catégorie. <a href="{{ route('categories.create', $colocation) }}" class="text-blue-600 hover:underline">En créer une</a></p>
+            @endif
+        </div>
+    @endif
+
     <!-- Header -->
     <div class="mb-6">
         <div class="flex justify-between items-start">
