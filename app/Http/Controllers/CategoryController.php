@@ -11,9 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
-    /**
-     * Afficher le formulaire de création de catégorie
-     */
     public function create(Colocation $colocation)
     {
         if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
@@ -23,9 +20,6 @@ class CategoryController extends Controller
         return view('categories.create', compact('colocation'));
     }
 
-    /**
-     * Stocker une nouvelle catégorie
-     */
     public function store(StoreCategoryRequest $request, Colocation $colocation)
     {
         if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
@@ -44,9 +38,6 @@ class CategoryController extends Controller
             ->with('success', 'Catégorie ajoutée avec succès !');
     }
 
-    /**
-     * Afficher le formulaire d'édition d'une catégorie
-     */
     public function edit(Categorie $categorie)
     {
         $colocation = $categorie->colocation;
@@ -58,9 +49,6 @@ class CategoryController extends Controller
         return view('categories.edit', compact('categorie', 'colocation'));
     }
 
-    /**
-     * Mettre à jour une catégorie
-     */
     public function update(Request $request, Categorie $categorie)
     {
         $colocation = $categorie->colocation;
@@ -80,15 +68,6 @@ class CategoryController extends Controller
             ->with('success', 'Catégorie modifiée avec succès !');
     }
 
-    /**
-     * Supprimer une catégorie
-     * 
-     * Règles :
-     * - Seul le owner ou admin peut supprimer
-     * - Vérifier que la catégorie n'est pas liée à des dépenses
-     * - Si liée à des dépenses → empêcher la suppression
-     * - Sinon → supprimer la catégorie
-     */
     public function destroy(Categorie $categorie)
     {
         $colocation = $categorie->colocation;
@@ -97,7 +76,6 @@ class CategoryController extends Controller
             abort(403, 'Seul le propriétaire peut supprimer des catégories.');
         }
 
-        // Vérifier si la catégorie est liée à des dépenses
         if ($categorie->depenses()->exists()) {
             return back()->with('error', 'Impossible de supprimer cette catégorie. Elle est utilisée par des dépenses.');
         }
