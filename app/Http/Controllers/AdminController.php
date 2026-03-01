@@ -10,17 +10,12 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    /**
-     * Affiche le dashboard d'administration
-     */
     public function dashboard()
     {
-        // Vérifier que l'utilisateur est admin
         if (!Auth::user()->is_admin) {
             abort(403, 'Accès refusé. Vous n\'êtes pas administrateur.');
         }
 
-        // Statistiques globales
         $stats = [
             'total_users' => User::count(),
             'active_users' => User::where('is_banned', false)->count(),
@@ -36,7 +31,6 @@ class AdminController extends Controller
             'avg_expense' => Depense::avg('montant') ?? 0,
         ];
 
-        // Utilisateurs avec options de tri/filtrage
         $query = User::query();
         
         if (request('search')) {
@@ -58,12 +52,8 @@ class AdminController extends Controller
         return view('admin.dashboard', compact('stats', 'users'));
     }
 
-    /**
-     * Bannir un utilisateur
-     */
     public function ban(User $user)
     {
-        // Vérifier que l'utilisateur est admin
         if (!Auth::user()->is_admin) {
             abort(403, 'Accès refusé. Vous n\'êtes pas administrateur.');
         }
@@ -74,18 +64,13 @@ class AdminController extends Controller
 
         $user->update(['is_banned' => true]);
 
-        // Supprimer l'utilisateur de toutes ses colocations
         $user->colocations()->detach();
 
         return back()->with('success', "{$user->name} a été banni(e) du site.");
     }
 
-    /**
-     * Débannir un utilisateur
-     */
     public function unban(User $user)
     {
-        // Vérifier que l'utilisateur est admin
         if (!Auth::user()->is_admin) {
             abort(403, 'Accès refusé. Vous n\'êtes pas administrateur.');
         }
@@ -95,12 +80,8 @@ class AdminController extends Controller
         return back()->with('success', "{$user->name} a été débanni(e).");
     }
 
-    /**
-     * Promouvoir un utilisateur en admin
-     */
     public function makeAdmin(User $user)
     {
-        // Vérifier que l'utilisateur est admin
         if (!Auth::user()->is_admin) {
             abort(403, 'Accès refusé. Vous n\'êtes pas administrateur.');
         }
@@ -110,12 +91,8 @@ class AdminController extends Controller
         return back()->with('success', "{$user->name} est maintenant administrateur.");
     }
 
-    /**
-     * Retirer les droits admin à un utilisateur
-     */
     public function removeAdmin(User $user)
     {
-        // Vérifier que l'utilisateur est admin
         if (!Auth::user()->is_admin) {
             abort(403, 'Accès refusé. Vous n\'êtes pas administrateur.');
         }
