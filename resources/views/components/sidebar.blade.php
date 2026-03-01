@@ -84,6 +84,8 @@
             <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Profil</span>
             @if(auth()->user()->is_banned)
                 <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded">Banni</span>
+            @elseif(auth()->user()->is_admin)
+                <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-1 rounded">Admin</span>
             @endif
         </div>
         <div class="space-y-2">
@@ -92,6 +94,23 @@
                 <span class="text-xs text-slate-400">Réputation</span>
                 <span class="text-sm font-bold text-yellow-400">{{ auth()->user()->reputation ?? 0 }}</span>
             </div>
+        </div>
+
+        <!-- Profile Links -->
+        <div class="mt-4 pt-4 border-t border-slate-600/50 space-y-2">
+            <!-- Voir le Profil -->
+            <a href="{{ route('profile.show') }}"
+               class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-600/50 hover:text-white transition text-sm font-medium">
+                <i class='bx bx-user-circle text-base'></i>
+                <span>Mon Profil</span>
+            </a>
+
+            <!-- Paramètres (Jetstream) -->
+            <a href="{{ route('profile.show') }}"
+               class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-600/50 hover:text-white transition text-sm font-medium">
+                <i class='bx bx-cog text-base'></i>
+                <span>Paramètres</span>
+            </a>
         </div>
     </div>
 </aside>
