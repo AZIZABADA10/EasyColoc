@@ -178,4 +178,31 @@ class Colocation extends Model
 
         return $debts;
     }
+
+    /**
+     * Vérifier s'il existe des dettes non réglées dans la colocation
+     * Utilisé pour empêcher l'annulation d'une colocation avec dettes
+     */
+    public function hasUnpaidDebts()
+    {
+        return DB::table('paiements')
+            ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
+            ->where('depenses.colocation_id', $this->id)
+            ->where('paiements.status_paiement', 0)
+            ->exists();
+    }
+
+    /**
+     * Récupérer tous les paiements non payés d'un utilisateur DANS CETTE colocation
+     * Utilisé pour vérifier si un member peut quitter
+     */
+    public function getUnpaidDebtsForUser($userId)
+    {
+        return DB::table('paiements')
+            ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
+            ->where('depenses.colocation_id', $this->id)
+            ->where('paiements.user_id', $userId)
+            ->where('paiements.status_paiement', 0)
+            ->get();
+    }
 }
