@@ -6,7 +6,26 @@
 @section('content')
 
 <div class="max-w-2xl mx-auto">
-    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+    @if($hasColocation)
+        <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4v2m0 4v2M12 5a7 7 0 110 14 7 7 0 010-14z"/>
+                </svg>
+                <div>
+                    <h3 class="font-semibold text-red-900">Accès Refusé</h3>
+                    <p class="text-red-800 text-sm mt-1">Vous êtes déjà membre d'une colocation. Vous ne pouvez pas créer une nouvelle colocation tant que vous êtes membre d'une autre.</p>
+                    <div class="mt-4 flex gap-2">
+                        <a href="{{ route('colocations.index') }}" class="inline-flex items-center px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors">
+                            Retour aux colocations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-lg border border-slate-200 overflow-hidden {{ $hasColocation ? 'opacity-50 pointer-events-none' : '' }}">
         <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
             <h2 class="text-3xl font-bold">Créer une Colocation</h2>
             <p class="text-blue-100 mt-2">Lancez une nouvelle colocation et invitez vos colocataires</p>
