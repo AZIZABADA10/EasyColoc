@@ -51,9 +51,7 @@ class ColocationController extends Controller
         return view('colocations.show', compact('colocation', 'debts'));
     }
 
-    /**
-     * Afficher le formulaire d'édition d'une colocation
-     */
+
     public function edit(Colocation $colocation)
     {
         if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
@@ -63,9 +61,6 @@ class ColocationController extends Controller
         return view('colocations.edit', compact('colocation'));
     }
 
-    /**
-     * Mettre à jour une colocation
-     */
     public function update(Request $request, Colocation $colocation)
     {
         if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
@@ -84,22 +79,14 @@ class ColocationController extends Controller
             ->with('success', 'Colocation modifiée avec succès.');
     }
 
-    /**
-     * Supprimer une colocation (ANNULER)
-     * 
-     * Règles :
-     * - Seul le owner ou admin peut annuler
-     * - Vérifier qu'il n'existe AUCUNE dette non réglée
-     * - Si dettes → empêcher avec message erreur
-     * - Sinon supprimer complètement
-     */
+
     public function destroy(Colocation $colocation)
     {
         if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
             abort(403, 'Vous n\'avez pas le droit de supprimer cette colocation.');
         }
 
-        // Vérifier s'il existe des dettes non réglées
+
         if ($colocation->hasUnpaidDebts()) {
             return back()->with('error', 'Impossible d\'annuler la colocation. Il existe encore des dettes non réglées. Veuillez d\'abord régler toutes les dettes.');
         }
@@ -113,23 +100,20 @@ class ColocationController extends Controller
             ->with('success', 'Colocation annulée et supprimée.');
     }
 
- 
     public function leave(Colocation $colocation)
     {
         $memberId = Auth::id();
 
-        // Vérification : le owner ne peut pas quitter
         if ($memberId == $colocation->owner_id) {
             return back()->with('error', 'Le propriétaire ne peut pas quitter la colocation.');
         }
 
-        // Vérification : le member doit faire partie de la colocation
         if (!$colocation->users->contains($memberId)) {
             abort(403, 'Vous n\'êtes pas membre de cette colocation.');
         }
 
         try {
-            // Vérifier s'il a des dettes non réglées
+
             $unpaidDebts = $colocation->getUnpaidDebtsForUser($memberId);
 
             if ($unpaidDebts->count() > 0) {
@@ -137,10 +121,8 @@ class ColocationController extends Controller
             }
 
             DB::transaction(function () use ($colocation, $memberId) {
-                // Le member n'a pas de dettes = BONUS +1 réputation (fidélité)
                 User::find($memberId)->increment('reputation');
 
-                // Retirer le member de la colocation
                 $colocation->users()->detach($memberId);
             });
 
@@ -151,26 +133,21 @@ class ColocationController extends Controller
             return back()->with('error', 'Une erreur s\'est produite. Veuillez réessayer.');
         }
     }
-
     public function removeMember(Colocation $colocation, User $user)
     {
-        // Vérification : seul le owner peut retirer des membres
         if (Auth::id() != $colocation->owner_id) {
             abort(403, 'Seul le propriétaire peut retirer des membres.');
         }
 
-        // Vérification : on ne peut pas retirer le owner
         if ($user->id == $colocation->owner_id) {
             return back()->with('error', 'Le propriétaire ne peut pas être retiré.');
         }
 
-        // Vérification : le membre doit faire partie de la colocation
         if (!$colocation->users->contains($user->id)) {
             return back()->with('error', 'Ce membre n\'appartient pas à cette colocation.');
         }
 
         try {
-            // Compter les dettes AVANT la transaction
             $unpaidPaymentCount = DB::table('paiements')
                 ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
                 ->where('depenses.colocation_id', $colocation->id)
@@ -179,7 +156,6 @@ class ColocationController extends Controller
                 ->count();
 
             DB::transaction(function () use ($colocation, $user) {
-                // 1. Récupérer tous les paiements non payés du user dans CETTE colocation
                 $unpaidPaymentIds = DB::table('paiements')
                     ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
                     ->where('depenses.colocation_id', $colocation->id)
@@ -187,17 +163,12 @@ class ColocationController extends Controller
                     ->where('paiements.status_paiement', 0)
                     ->pluck('paiements.id');
 
-                // 2. CAS IMPORTANT : Si le member a des dettes
                 if ($unpaidPaymentIds->count() > 0) {
-                    // 2a. IMPUTER LES DETTES AU OWNER
-                    // Changer le user_id du paiement → owner absorbe la dette
                     DB::table('paiements')
                         ->whereIn('id', $unpaidPaymentIds)
                         ->update(['user_id' => $colocation->owner_id]);
-                    // NOTE : Pas de marquer comme payé, les dettes deviennent celles du owner
                 }
 
-                // 3. Retirer le member de la colocation
                 $colocation->users()->detach($user->id);
             });
 
