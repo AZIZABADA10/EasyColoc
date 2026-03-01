@@ -35,7 +35,7 @@
                 </div>
                 <div>
                     <p class="text-slate-500 text-sm font-medium mb-1">Dépenses Globales ({{ now()->format('M') }})</p>
-                    <p class="text-4xl font-bold text-slate-900">{{ number_format($stats['monthly_expenses'] ?? 0, 2) }} <span class="text-2xl">€</span></p>
+                    <p class="text-4xl font-bold text-slate-900">{{ number_format($stats['monthly_expenses'] ?? 0, 2) }} <span class="text-2xl">DH</span></p>
                 </div>
             </div>
         </div>
