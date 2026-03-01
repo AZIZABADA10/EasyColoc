@@ -11,21 +11,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_admin')->default(false);
-            $table->boolean('is_banned')->default(false);
-            $table->integer('reputation')->default(0);
-        });
+        // Columns already added to create_users_table
     }
 
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn([
-                'is_admin',
-                'is_banned',
-                'reputation'
-            ]);
-        });
+        // No changes to rollback
     }
 };

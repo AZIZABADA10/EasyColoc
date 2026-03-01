@@ -16,9 +16,9 @@ return new class extends Migration
                 $table->id();
                 $table->string('titre_depense');
                 $table->float('montant');
-                $table->foreignId('user_id')->constrained();
-                $table->foreignId('colocation_id')->constrained();
-                $table->foreignId('categorie_id')->constrained();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->foreignId('colocation_id')->constrained()->onDelete('cascade');
+                $table->foreignId('categorie_id')->constrained()->onDelete('cascade');
                 $table->timestamps();
             });
         }

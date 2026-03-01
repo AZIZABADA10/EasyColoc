@@ -56,18 +56,22 @@ class ExpenseController extends Controller
             ->with('success', 'Dépense ajoutée avec succès.');
     }
 
-    public function destroy(Depense $depense)
+    public function destroy(Depense $expense)
     {
-        $colocation = $depense->colocation;
+        $colocation = $expense->colocation;
+
+        if (!$colocation) {
+            abort(404);
+        }
 
         if (
-            Auth::id() !== $depense->user_id &&
+            Auth::id() !== $expense->user_id &&
             Auth::id() !== $colocation->owner_id
         ) {
             abort(403);
         }
 
-        $depense->delete();
+        $expense->delete();
 
         return back()->with('success', 'Dépense supprimée.');
     }
