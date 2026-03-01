@@ -1,12 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('auth.register');
@@ -31,6 +33,10 @@ Route::middleware([
         ->name('categories.create');
     Route::post('colocations/{colocation}/categories', [CategoryController::class, 'store'])
         ->name('categories.store');
+    Route::get('categories/{categorie}/edit', [CategoryController::class, 'edit'])
+        ->name('categories.edit');
+    Route::put('categories/{categorie}', [CategoryController::class, 'update'])
+        ->name('categories.update');
     Route::delete('categories/{categorie}', [CategoryController::class, 'destroy'])
         ->name('categories.destroy');
 
@@ -71,6 +77,12 @@ Route::middleware([
         ->name('colocations.removeMember');
     Route::get('/colocations/{colocation}/balance',[ColocationController::class, 'balance'])
         ->name('colocations.balance');
+
+    // Profil
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'updateInformation'])->name('user-profile-information.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('user-password.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::middleware('admin')->group(function () {
         Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin.dashboard');
