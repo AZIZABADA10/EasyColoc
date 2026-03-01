@@ -86,7 +86,7 @@
                                 </div>
                                 <!-- Montant -->
                                 <div class="col-span-3 text-right">
-                                    <p class="text-base font-bold text-slate-900">{{ $expense->getMontantFormatted() }}</p>
+                                    <p class="text-base font-bold text-slate-900">{{ $expense->montant_formatted }}</p>
                                 </div>
                                 <!-- Coloc -->
                                 <div class="col-span-2 text-right">
