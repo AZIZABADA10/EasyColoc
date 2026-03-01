@@ -6,6 +6,7 @@ use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\AdminController;
 
 Route::get('/', function () {
     return view('auth.register');
@@ -63,7 +64,7 @@ Route::middleware([
     Route::post('/invitation/{token}/accept', [InvitationController::class, 'accept'])
         ->name('invitations.confirm');
 
-    Route::delete('/colocations/{colocation}/l eave', [ColocationController::class, 'leave'])
+    Route::delete('/colocations/{colocation}/leave', [ColocationController::class, 'leave'])
         ->name('colocations.leave');
 
     Route::delete('/colocations/{colocation}/remove/{user}', [ColocationController::class, 'removeMember'])
@@ -72,9 +73,11 @@ Route::middleware([
         ->name('colocations.balance');
 
     Route::middleware('admin')->group(function () {
-        Route::get('/admin', function () {
-            return view('admin.dashboard');
-        })->name('admin.dashboard');
+        Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+        Route::post('/admin/ban/{user}', [AdminController::class, 'ban'])->name('admin.ban');
+        Route::post('/admin/unban/{user}', [AdminController::class, 'unban'])->name('admin.unban');
+        Route::post('/admin/make-admin/{user}', [AdminController::class, 'makeAdmin'])->name('admin.makeAdmin');
+        Route::post('/admin/remove-admin/{user}', [AdminController::class, 'removeAdmin'])->name('admin.removeAdmin');
     });
    
 
