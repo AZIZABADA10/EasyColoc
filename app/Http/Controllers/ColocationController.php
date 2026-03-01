@@ -20,11 +20,22 @@ class ColocationController extends Controller
 
     public function create()
     {
-        return view('colocations.create');
+        $userColocations = Auth::user()->colocations()->count();
+        $hasColocation = $userColocations > 0;
+        
+        return view('colocations.create', compact('hasColocation'));
     }
 
     public function store(StoreColocationRequest $request)
     {
+        // Vérifier que l'utilisateur n'est pas déjà dans une colocation
+        $userColocations = Auth::user()->colocations()->count();
+        if ($userColocations > 0) {
+            return redirect()
+                ->route('colocations.create')
+                ->with('error', 'Vous êtes déjà membre d\'une colocation. Vous ne pouvez pas en créer une nouvelle.');
+        }
+
         $data = $request->validated();
 
         $colocation = Colocation::create([
