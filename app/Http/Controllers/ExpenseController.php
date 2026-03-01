@@ -94,12 +94,19 @@ class ExpenseController extends Controller
      */
     public function markDebtAsPaid(Colocation $colocation, $fromId, $toId)
     {
-        if (!$colocation->users->contains(Auth::id())) {
-            abort(403);
+        // Convertir en int pour éviter les problèmes de comparaison
+        $fromId = (int)$fromId;
+        $toId = (int)$toId;
+        $userId = Auth::id();
+
+        // Vérifier que l'utilisateur connecté est membre de la colocation
+        if (!$colocation->users->contains($userId)) {
+            abort(403, 'Vous n\'êtes pas membre de cette colocation.');
         }
 
-        if (Auth::id() !== $fromId && Auth::id() !== $colocation->owner_id) {
-            abort(403);
+        // Seul celui qui doit payer ou le owner peut marquer comme payé
+        if ($userId !== $fromId && $userId !== $colocation->owner_id) {
+            abort(403, 'Vous n\'avez pas la permission de marquer cette dette. Seul celui qui doit et le owner peuvent le faire.');
         }
 
         // Retrouve tous les paiements non payés entre ces deux utilisateurs
