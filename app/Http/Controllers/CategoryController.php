@@ -45,6 +45,42 @@ class CategoryController extends Controller
     }
 
     /**
+     * Afficher le formulaire d'édition d'une catégorie
+     */
+    public function edit(Categorie $categorie)
+    {
+        $colocation = $categorie->colocation;
+
+        if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
+            abort(403, 'Seul le propriétaire peut modifier des catégories.');
+        }
+
+        return view('categories.edit', compact('categorie', 'colocation'));
+    }
+
+    /**
+     * Mettre à jour une catégorie
+     */
+    public function update(Request $request, Categorie $categorie)
+    {
+        $colocation = $categorie->colocation;
+
+        if ($colocation->owner_id !== Auth::id() && !Auth::user()->is_admin) {
+            abort(403, 'Seul le propriétaire peut modifier des catégories.');
+        }
+
+        $validated = $request->validate([
+            'titre_categorie' => 'required|string|max:255',
+        ]);
+
+        $categorie->update($validated);
+
+        return redirect()
+            ->route('colocations.show', $colocation)
+            ->with('success', 'Catégorie modifiée avec succès !');
+    }
+
+    /**
      * Supprimer une catégorie
      * 
      * Règles :
