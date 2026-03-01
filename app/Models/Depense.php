@@ -37,11 +37,11 @@ class Depense extends Model
  
     public function getMontantFormattedAttribute()
     {
-        return number_format($this->montant, 2, ',', ' ') . ' €';
+        return number_format($this->montant, 2, ',', ' ') . ' DH';
     }
 
     public function getMontantFormatted()
     {
-        return number_format($this->montant, 2, ',', ' ') . ' €';
+        return number_format($this->montant, 2, ',', ' ') . ' DH';
     }
 }
