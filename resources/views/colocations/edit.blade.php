@@ -74,12 +74,7 @@
         </div>
     </div>
 
-    <!-- Info Box -->
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-blue-900 text-sm">
-            <strong>💡 Info :</strong> Seul le propriétaire peut modifier les informations de la colocation.
-        </p>
-    </div>
+ 
 </div>
 
 @endsection
