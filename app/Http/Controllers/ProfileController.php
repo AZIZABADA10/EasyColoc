@@ -7,17 +7,11 @@ use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
-    /**
-     * Affiche la page du profil
-     */
     public function show()
     {
         return view('profile.show');
     }
 
-    /**
-     * Met à jour les informations du profil
-     */
     public function updateInformation(Request $request)
     {
         $validated = $request->validate([
@@ -30,9 +24,6 @@ class ProfileController extends Controller
         return back()->with('success', 'Profil mis à jour avec succès.');
     }
 
-    /**
-     * Met à jour le mot de passe
-     */
     public function updatePassword(Request $request)
     {
         $validated = $request->validate([
@@ -47,9 +38,6 @@ class ProfileController extends Controller
         return back()->with('success', 'Mot de passe mis à jour avec succès.');
     }
 
-    /**
-     * Supprime le compte utilisateur
-     */
     public function destroy()
     {
         $user = Auth::user();
