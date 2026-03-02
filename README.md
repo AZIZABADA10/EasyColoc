@@ -1,59 +1,182 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EasyColoc
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+EasyColoc est une application web de gestion de colocation permettant de suivre les dépenses communes et de calculer automatiquement les soldes entre membres.
 
-## About Laravel
+L’objectif principal est d’éviter les calculs manuels, réduire les conflits financiers et offrir une vision claire de **“qui doit quoi à qui”**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Objectifs
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Objectifs fonctionnels
 
-## Learning Laravel
+- Gérer des colocations (création, annulation, départ/retrait de membres)
+- Suivre les dépenses partagées
+- Calculer automatiquement les soldes individuels
+- Afficher une vue simplifiée des remboursements
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Objectifs techniques
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Architecture MVC (Laravel)
+- Base de données relationnelle (MySQL / PostgreSQL)
+- ORM Eloquent (relations hasMany / belongsToMany)
+- Authentification Laravel Breeze / Jetstream
+- Système de rôles (Admin global, Owner, Member)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Architecture Technique
 
-### Premium Partners
+- Framework : Laravel
+- Architecture : MVC Monolithique
+- ORM : Eloquent
+- Base de données : MySQL
+- Frontend : Blade + Tailwind CSS
+- Authentification : Laravel Breeze / Jetstream
+- Versionning : Git / GitHub
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+# Acteurs & Rôles
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Member
+- Rejoint une colocation
+- Ajoute des dépenses
+- Consulte son solde
+- Marque un paiement
+- Peut quitter la colocation (sauf owner)
 
-## Code of Conduct
+## Owner
+- Crée la colocation
+- Invite des membres
+- Retire un membre
+- Gère les catégories
+- Peut annuler la colocation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Global Admin
+- Accède aux statistiques globales
+- Bannit / débannit des utilisateurs
+- Peut également être Owner ou Member
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Fonctionnalités
 
-## License
+## Utilisateurs
+- Inscription / Connexion
+- Gestion du profil
+- Premier inscrit promu Admin global automatiquement
+- Blocage automatique des utilisateurs bannis
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Colocations
+- Création automatique avec Owner
+- Invitation par email/token
+- Une seule colocation active par utilisateur
+- Départ d’un membre (gestion `left_at`)
+- Annulation d’une colocation
+
+## Dépenses
+- Ajout (titre, montant, date, catégorie, payeur)
+- Suppression
+- Historique des dépenses
+- Statistiques par catégorie
+- Filtrage par mois
+
+## Balances & Dettes
+- Calcul automatique :
+  - Total payé
+  - Part individuelle
+  - Solde
+- Vue synthétique “Qui doit à qui”
+- Réduction des dettes via paiements
+
+## Paiements simples
+- Action “Marquer payé”
+
+## Réputation
+- Départ avec dette → -1
+- Départ sans dette → +1
+- Si un Owner retire un membre avec dette → dette imputée à l’Owner
+
+## Administration
+- Dashboard global
+- Statistiques utilisateurs / colocations / dépenses
+- Bannissement / Débannissement
+
+---
+
+# Scénarios d’implémentation
+
+## Invitation
+- Génération d’un token unique
+- Envoi email
+- Vérification email/token
+- Blocage si colocation active existante
+- Ajout comme Member
+
+## Dépense commune
+- Ajout d’une dépense
+- Recalcul automatique des soldes
+- Affichage synthétique des remboursements
+
+## Départ avec dette
+- Ajustement réputation
+- Redistribution interne des dettes
+- Cas spécifique : dette imputée à l’Owner si retrait forcé
+
+## Blocage multi-colocation
+- Impossible d’avoir plus d’une colocation active
+- Blocage création / acceptation d’invitation
+
+---
+
+# Périmètre
+
+## Inclus
+- Authentification
+- Gestion colocations
+- Invitations
+- Dépenses & catégories
+- Calcul des balances
+- Paiements simples
+- Réputation
+- Dashboard Admin
+- Filtre mensuel
+
+## Hors périmètre (Bonus)
+- Paiement Stripe
+- Notifications temps réel
+- Calendrier
+- Export de données
+
+---
+
+# Sécurité
+
+- Protection CSRF (@csrf)
+- Protection XSS via Blade `{{ }}`
+- Validation côté serveur
+- Validation HTML5 côté client
+- Gestion des rôles et autorisations
+- Utilisation de requêtes préparées via Eloquent
+- Clés étrangères & contraintes
+
+---
+
+# UML
+
+- Diagramme de cas d’utilisation
+- Diagramme de classes
+
+---
+
+# Installation
+
+```bash
+git clone <repo-url>
+cd easycoloc
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve
