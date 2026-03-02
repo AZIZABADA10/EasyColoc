@@ -114,16 +114,13 @@ class ColocationController extends Controller
     {
         $memberId = Auth::id();
 
-        if ($memberId == $colocation->owner_id) {
-            return back()->with('error', 'Le propriétaire ne peut pas quitter la colocation.');
-        }
-
         if (!$colocation->users->contains($memberId)) {
             abort(403, 'Vous n\'êtes pas membre de cette colocation.');
         }
 
         try {
-             $unpaidPaymentCount = DB::table('paiements')
+            // Récupérer les dettes impayées de ce membre
+            $unpaidPaymentCount = DB::table('paiements')
                 ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
                 ->where('depenses.colocation_id', $colocation->id)
                 ->where('paiements.user_id', $memberId)
@@ -132,8 +129,14 @@ class ColocationController extends Controller
 
             $hasUnpaidDebts = $unpaidPaymentCount > 0;
 
+            // Vérifier si c'est le propriétaire avec dettes impayées
+            if ($memberId == $colocation->owner_id && $hasUnpaidDebts) {
+                return back()->with('error', 'Le propriétaire ne peut pas quitter s\'il y a des dépenses impayées. Veuillez régler toutes les dettes avant de quitter.');
+            }
+
             DB::transaction(function () use ($colocation, $memberId, $hasUnpaidDebts, $unpaidPaymentCount) {
-                 if ($hasUnpaidDebts) {
+                // Transférer les dettes impayées au propriétaire (si ce n'est pas lui)
+                if ($hasUnpaidDebts && $memberId != $colocation->owner_id) {
                     $unpaidPaymentIds = DB::table('paiements')
                         ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
                         ->where('depenses.colocation_id', $colocation->id)
@@ -148,15 +151,23 @@ class ColocationController extends Controller
                     }
                 }
 
-                 $reputationChange = $hasUnpaidDebts ? -1 : 1;
+                // Modifier la réputation
+                $reputationChange = $hasUnpaidDebts && $memberId != $colocation->owner_id ? -1 : 1;
                 User::find($memberId)->increment('reputation', $reputationChange);
 
-                 $colocation->users()->detach($memberId);
+                // Quitter la colocation
+                $colocation->users()->detach($memberId);
             });
 
-            $message = $hasUnpaidDebts 
-                ? "Vous avez quitté la colocation. {$unpaidPaymentCount} dette(s) transférée(s) au propriétaire. -1 réputation." 
-                : 'Vous avez quitté la colocation. +1 réputation pour votre fidélité !';
+            $isOwner = $memberId == $colocation->owner_id;
+            
+            if ($hasUnpaidDebts && !$isOwner) {
+                $message = "Vous avez quitté la colocation. {$unpaidPaymentCount} dette(s) transférée(s) au propriétaire. -1 réputation.";
+            } else {
+                $message = $isOwner 
+                    ? 'Vous avez quitté la colocation en tant que propriétaire. +1 réputation !' 
+                    : 'Vous avez quitté la colocation. +1 réputation pour votre fidélité !';
+            }
 
             return redirect()
                 ->route('dashboard')
@@ -165,6 +176,7 @@ class ColocationController extends Controller
             return back()->with('error', 'Une erreur s\'est produite. Veuillez réessayer.');
         }
     }
+
     public function removeMember(Colocation $colocation, User $user)
     {
         if (Auth::id() != $colocation->owner_id) {
