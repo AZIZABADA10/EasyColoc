@@ -93,9 +93,7 @@ class ExpenseController extends Controller
         return back()->with('success', 'Paiement marqué comme payé.');
     }
 
-    /**
-     * Marque tous les paiements d'une dette comme payés
-     */
+ 
     public function markDebtAsPaid(Colocation $colocation, $fromId, $toId)
     {
         $fromId = (int)$fromId;
