@@ -103,11 +103,11 @@ class Colocation extends Model
 
     public function getDebts()
     {
-        $debts = collect();
+        $debts = [];
         $membersCount = $this->users->count();
 
         if ($membersCount === 0) {
-            return $debts;
+            return collect($debts);
         }
 
         $unpaidPayments = DB::table('paiements')
@@ -124,14 +124,14 @@ class Colocation extends Model
             )
             ->get();
 
-        $montantParMembre = collect();
-        $paymentIds = collect();
+        $montantParMembre = [];
+        $paymentIds = [];
 
         foreach ($unpaidPayments as $payment) {
             $montantDu = $payment->montant / $membersCount;
             $key = $payment->user_id . '_' . $payment->payeur_id;
 
-            if ($montantParMembre->has($key)) {
+            if (isset($montantParMembre[$key])) {
                 $montantParMembre[$key]['montant'] += $montantDu;
                 $paymentIds[$key][] = $payment->payment_id;
             } else {
@@ -155,7 +155,7 @@ class Colocation extends Model
             ];
         }
 
-        return $debts;
+        return collect($debts);
     }
 
     public function hasUnpaidDebts()
