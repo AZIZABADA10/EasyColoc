@@ -35,10 +35,7 @@ class Depense extends Model
         return $this->hasMany(Paiement::class);
     }
  
-    /**
-     * Formatte le montant en format monétaire marocain
-     * Utilisation : $depense->montant_formatted
-     */
+ 
     public function getMontantFormattedAttribute()
     {
         return number_format($this->montant, 2, ',', ' ') . ' DH';
