@@ -28,8 +28,7 @@ class ColocationController extends Controller
 
     public function store(StoreColocationRequest $request)
     {
-        // Vérifier que l'utilisateur n'est pas déjà dans une colocation
-        $userColocations = Auth::user()->colocations()->count();
+         $userColocations = Auth::user()->colocations()->count();
         if ($userColocations > 0) {
             return redirect()
                 ->route('colocations.create')
@@ -124,22 +123,44 @@ class ColocationController extends Controller
         }
 
         try {
+             $unpaidPaymentCount = DB::table('paiements')
+                ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
+                ->where('depenses.colocation_id', $colocation->id)
+                ->where('paiements.user_id', $memberId)
+                ->where('paiements.status_paiement', 0)
+                ->count();
 
-            $unpaidDebts = $colocation->getUnpaidDebtsForUser($memberId);
+            $hasUnpaidDebts = $unpaidPaymentCount > 0;
 
-            if ($unpaidDebts->count() > 0) {
-                return back()->with('error', 'Vous avez des dettes non réglées. Impossible de quitter la colocation pour le moment.');
-            }
+            DB::transaction(function () use ($colocation, $memberId, $hasUnpaidDebts, $unpaidPaymentCount) {
+                 if ($hasUnpaidDebts) {
+                    $unpaidPaymentIds = DB::table('paiements')
+                        ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
+                        ->where('depenses.colocation_id', $colocation->id)
+                        ->where('paiements.user_id', $memberId)
+                        ->where('paiements.status_paiement', 0)
+                        ->pluck('paiements.id');
 
-            DB::transaction(function () use ($colocation, $memberId) {
-                User::find($memberId)->increment('reputation');
+                    if ($unpaidPaymentIds->count() > 0) {
+                        DB::table('paiements')
+                            ->whereIn('id', $unpaidPaymentIds)
+                            ->update(['user_id' => $colocation->owner_id]);
+                    }
+                }
 
-                $colocation->users()->detach($memberId);
+                 $reputationChange = $hasUnpaidDebts ? -1 : 1;
+                User::find($memberId)->increment('reputation', $reputationChange);
+
+                 $colocation->users()->detach($memberId);
             });
+
+            $message = $hasUnpaidDebts 
+                ? "Vous avez quitté la colocation. {$unpaidPaymentCount} dette(s) transférée(s) au propriétaire. -1 réputation." 
+                : 'Vous avez quitté la colocation. +1 réputation pour votre fidélité !';
 
             return redirect()
                 ->route('dashboard')
-                ->with('success', 'Vous avez quitté la colocation. +1 réputation pour votre fidélité !');
+                ->with('success', $message);
         } catch (\Exception $e) {
             return back()->with('error', 'Une erreur s\'est produite. Veuillez réessayer.');
         }
@@ -166,7 +187,12 @@ class ColocationController extends Controller
                 ->where('paiements.status_paiement', 0)
                 ->count();
 
-            DB::transaction(function () use ($colocation, $user) {
+            $hasUnpaidDebts = $unpaidPaymentCount > 0;
+
+            DB::transaction(function () use ($colocation, $user, $unpaidPaymentCount, $hasUnpaidDebts) {
+                 $reputationChange = $hasUnpaidDebts ? -1 : 1;
+                $user->increment('reputation', $reputationChange);
+
                 $unpaidPaymentIds = DB::table('paiements')
                     ->join('depenses', 'paiements.depense_id', '=', 'depenses.id')
                     ->where('depenses.colocation_id', $colocation->id)
@@ -183,9 +209,10 @@ class ColocationController extends Controller
                 $colocation->users()->detach($user->id);
             });
 
+            $reputationInfo = $hasUnpaidDebts ? '-1 réputation' : '+1 réputation';
             $message = $unpaidPaymentCount > 0 
-                ? "Membre retiré. {$unpaidPaymentCount} dette(s) imputée(s) à vous." 
-                : 'Membre retiré.';
+                ? "{$user->name} retiré. {$unpaidPaymentCount} dette(s) imputée(s) à vous. ({$reputationInfo})" 
+                : "{$user->name} retiré. ({$reputationInfo})";
 
             return back()->with('success', $message);
         } catch (\Exception $e) {
