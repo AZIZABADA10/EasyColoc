@@ -171,9 +171,3 @@ L’objectif principal est d’éviter les calculs manuels, réduire les conflit
 ---
 
 # Installation
-
-```bash
-git clone <repo-url>
-cd easycoloc
-composer install
-cp  .env
