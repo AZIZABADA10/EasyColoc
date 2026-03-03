@@ -167,7 +167,3 @@ L’objectif principal est d’éviter les calculs manuels, réduire les conflit
 
 - Diagramme de cas d’utilisation
 - Diagramme de classes
-
----
-
-# Installation
