@@ -176,4 +176,4 @@ L’objectif principal est d’éviter les calculs manuels, réduire les conflit
 git clone <repo-url>
 cd easycoloc
 composer install
-cp .env.example .env
+cp  .env
